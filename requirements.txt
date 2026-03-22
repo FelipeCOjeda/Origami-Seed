@@ -1,0 +1,6 @@
+flask
+reportlab
+qrcode[pil]
+pillow
+coincurve
+pypdf
