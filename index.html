@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Origami Wallet</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- QRCode.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- ── Offline Warning Banner ── -->
+  <div id="offlineBanner" class="hidden">
+    <span class="banner-icon">⚠️</span>
+    <span id="bannerText">Verificando conexão...</span>
+  </div>
+
+  <!-- ── Topbar ── -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🦢</div>
+      <div class="brand-text">
+        <div class="title">Origami Wallet</div>
+        <div class="subtitle">seed → dobra → guarda</div>
+      </div>
+    </div>
+    <div class="pill">
+      <span class="dot"></span>
+      <span id="statusText">Pronto</span>
+    </div>
+  </header>
+
+  <!-- ── Step Indicator ── -->
+  <div class="steps-track">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-label">Mnemonic</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-label">Template</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-label">Derivação</div>
+    </div>
+  </div>
+
+  <main class="wrap">
+
+    <!-- ── Card 1: Gerar Mnemonic ── -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-step">1</div>
+        <h2>Gerar / Colar Mnemonic</h2>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Modo de geração</label>
+          <select id="mode">
+            <option value="random">Aleatório (CSPRNG)</option>
+            <option value="text">A partir de texto (SHA-256)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Força da seed</label>
+          <select id="strength">
+            <option value="128">12 palavras · 128 bits</option>
+            <option value="256" selected>24 palavras · 256 bits</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" id="textBox" style="display:none;">
+        <label>Texto base (entropia via SHA-256)</label>
+        <input id="seedText" type="text" placeholder="Ex: 'pizza no satsconf 2025' — use algo longo e imprevisível" />
+        <div class="warningBox">
+          ⚠️ <b>NESTE MODO, A FORÇA DA ENTROPIA É 100% RESPONSABILIDADE SUA.</b>
+          O texto digitado (não um gerador aleatório seguro) é a única fonte de entropia da seed.
+          Se o texto for curto, comum ou previsível, a seed pode ser quebrada por força bruta/dicionário,
+          mesmo que a "força" selecionada diga 128/256 bits. Use algo longo, único e verdadeiramente imprevisível — ou prefira o modo Aleatório (CSPRNG).
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btnGenerate">⚡ Gerar</button>
+        <button class="btn" id="btnValidate">✓ Validar</button>
+        <button class="btn" id="btnCopyMnemonic">⎘ Copiar</button>
+        <button class="btn danger" id="btnClear">✕ Limpar</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Mnemonic BIP39</label>
+        <div class="mnemonic-wrap" id="mnemonicWrap">
+          <textarea id="mnemonic" rows="3" placeholder="12 ou 24 palavras separadas por espaço..."></textarea>
+          <button class="btn-mask" id="btnMask" title="Mostrar/ocultar seed">👁</button>
+        </div>
+        <div class="field-footer">
+          <div class="hint">Cole ou gere acima. Numeração do template: 1…N.</div>
+          <span class="word-count" id="wordCount">0 palavras</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Card 2: Template Imprimível ── -->
+    <section class="card card-print">
+      <div class="card-header">
+        <div class="card-step">2</div>
+        <h2>Origami Template · Imprimível</h2>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Layout</label>
+          <select id="layout">
+            <option value="4x6">4 × 6 — 24 palavras</option>
+            <option value="4x3">4 × 3 — 12 palavras</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tamanho da fonte — <span id="fontSizeLabel">14</span>px</label>
+          <input id="fontSize" type="range" min="10" max="20" value="14" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btnBuildTemplate">📄 Montar template</button>
+        <button class="btn" id="btnPrint">🖨 Imprimir</button>
+      </div>
+
+      <div class="printArea" id="printArea">
+        <div class="paper" id="paper">
+          <div class="paperHead">
+            <div class="paperHeadLeft">
+              <div class="paperTitle">🦢 Origami Wallet — Seed Backup</div>
+              <div class="paperMeta" id="paperMeta">—</div>
+              <div class="paperZpub" id="paperZpub"></div>
+            </div>
+            <div class="qr-box" id="qrBox">
+              <div class="qr-canvas-wrap" id="qrCanvasWrap">zpub<br>aqui</div>
+              <div class="qr-label" id="qrLabel">—</div>
+            </div>
+          </div>
+
+          <div class="grid" id="wordGrid"></div>
+
+          <div class="paperFoot">
+            <div>⚠️ Dobra e guarda offline. Caneta + cofre.</div>
+            <div>Zero backend · Zero telemetria · HTML/JS local</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Card 3: Derivação BIP84 ── -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-step">3</div>
+        <h2>Bônus · Derivação BIP84 (xpub / zpub + endereços)</h2>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Rede</label>
+          <select id="network">
+            <option value="mainnet" selected>Mainnet</option>
+            <option value="testnet">Testnet</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Quantidade de endereços</label>
+          <input id="addrCount" type="number" min="1" max="50" value="10" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btnDerive">⚡ Derivar</button>
+        <button class="btn" id="btnCopyXpub">⎘ Copiar xpub/zpub</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Account XPUB (BIP32)</label>
+          <textarea id="xpub" rows="2" readonly></textarea>
+          <div class="hint">xpub padrão. Para segwit nativo, use o zpub →</div>
+        </div>
+        <div class="field">
+          <label>Account ZPUB (SLIP-0132)</label>
+          <textarea id="zpub" rows="2" readonly></textarea>
+          <div class="hint">Conversão local via base58check (zpub/vpub).</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Endereços BIP84 · m/84'/coin'/0'/change/index</label>
+        <div class="addrGrid">
+          <div>
+            <div class="addrHead">Receive · change=0</div>
+            <pre id="addrReceive" class="mono"></pre>
+          </div>
+          <div>
+            <div class="addrHead">Change · change=1</div>
+            <pre id="addrChange" class="mono"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Feito pra rodar local.</span>
+      <span>·</span>
+      <span>Zero backend.</span>
+      <span>·</span>
+      <span>Zero telemetria.</span>
+      <span>·</span>
+      <span>HTML/JS puro.</span>
+    </footer>
+
+  </main>
+
+  <div class="modalOverlay" id="textModeModal" style="display:none;">
+    <div class="modalBox">
+      <div class="modalIcon">⚠️</div>
+      <h3 class="modalTitle">A ENTROPIA AQUI É O SEU TEXTO</h3>
+      <p class="modalText">
+        Você escolheu gerar a seed <b>a partir de um texto</b>. Isso significa que a
+        <b>força real da entropia não vem da "128/256 bits" selecionada — vem inteiramente do
+        que você digitar.</b>
+      </p>
+      <p class="modalText">
+        Um texto curto, comum ou adivinhável (frase de música, data, nome, senha reciclada etc.)
+        pode ser quebrado por dicionário/força bruta em segundos, mesmo virando um mnemonic de
+        24 palavras "aparentemente" forte. <b>Você é responsável por garantir que o texto usado
+        tenha entropia real e suficiente.</b>
+      </p>
+      <p class="modalText">Se tiver dúvida, use o modo <b>Aleatório (CSPRNG)</b> em vez deste.</p>
+
+      <label class="modalCheck">
+        <input type="checkbox" id="textModeAck" />
+        Entendi o risco e confirmo que meu texto tem entropia adequada.
+      </label>
+
+      <div class="row">
+        <button class="btn" id="btnTextModeCancel">Cancelar / usar Aleatório</button>
+        <button class="btn danger" id="btnTextModeContinue" disabled>Continuar mesmo assim</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
