@@ -8,6 +8,7 @@ import bs58check from "https://cdn.jsdelivr.net/npm/bs58check@3.0.1/+esm";
 import { Buffer } from "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm";
 
 window.Buffer = Buffer;
+window.bip39 = bip39; // exposto para entropia-info.js (extrai entropia do mnemonic)
 
 const bip32 = bip32mod.BIP32Factory(ecc);
 
@@ -191,6 +192,7 @@ $("btnClear").addEventListener("click", () => {
   $("paperZpub").textContent = "";
   $("qrLabel").textContent = "—";
   $("qrCanvasWrap").innerHTML = "zpub<br>aqui";
+  $("entropia-painel").innerHTML = "";
   updateWordCount();
   setStatus("Limpo.", true);
 });
@@ -225,6 +227,13 @@ $("btnGenerate").addEventListener("click", async () => {
 
     let entropy;
     if (mode === "random") {
+      // Verificação do CSPRNG ANTES de gerar (lição Coldcard) — aborta se o RNG parecer comprometido
+      const numPalavras = strength === 256 ? 24 : 12;
+      try {
+        window.EntropiaInfo.verificar(numPalavras);
+      } catch (err) {
+        return setStatus(err.message, false);
+      }
       entropy = randomBytes(strength / 8);
     } else {
       const t = ($("seedText").value || "").trim();
@@ -246,6 +255,15 @@ $("btnGenerate").addEventListener("click", async () => {
       masked = false;
       $("mnemonicWrap").classList.remove("masked");
       $("btnMask").textContent = "👁";
+    }
+
+    // Painel de entropia só faz sentido no modo Aleatório (CSPRNG) — no modo texto
+    // a fonte é o SHA-256 do texto digitado, não window.crypto.getRandomValues()
+    if (mode === "random") {
+      window.EntropiaInfo.exibir(mnemonic, strength === 256 ? 24 : 12);
+    } else {
+      const painel = $("entropia-painel");
+      if (painel) painel.innerHTML = "";
     }
 
     setStatus(`Gerado: ${wordsFromMnemonic(mnemonic).length} palavras ✅`, true);
