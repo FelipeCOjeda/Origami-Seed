@@ -230,3 +230,7 @@ const EntropiaInfo = (() => {
   return { verificar, exibir, _toggleHex };
 
 })();
+
+// `const` no topo de um script clássico não vira propriedade de `window` — expõe
+// explicitamente, já que app.js (type="module") acessa isto via window.EntropiaInfo.
+window.EntropiaInfo = EntropiaInfo;
