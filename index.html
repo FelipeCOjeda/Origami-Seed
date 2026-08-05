@@ -78,7 +78,12 @@
       <div class="field" id="textBox" style="display:none;">
         <label>Texto base (entropia via SHA-256)</label>
         <input id="seedText" type="text" placeholder="Ex: 'pizza no satsconf 2025' — use algo longo e imprevisível" />
-        <div class="hint">⚠ Se for usar texto, que seja MUITO longo e caótico. O ideal é sempre aleatório.</div>
+        <div class="warningBox">
+          ⚠️ <b>NESTE MODO, A FORÇA DA ENTROPIA É 100% RESPONSABILIDADE SUA.</b>
+          O texto digitado (não um gerador aleatório seguro) é a única fonte de entropia da seed.
+          Se o texto for curto, comum ou previsível, a seed pode ser quebrada por força bruta/dicionário,
+          mesmo que a "força" selecionada diga 128/256 bits. Use algo longo, único e verdadeiramente imprevisível — ou prefira o modo Aleatório (CSPRNG).
+        </div>
       </div>
 
       <div class="row">
@@ -222,6 +227,35 @@
     </footer>
 
   </main>
+
+  <div class="modalOverlay" id="textModeModal" style="display:none;">
+    <div class="modalBox">
+      <div class="modalIcon">⚠️</div>
+      <h3 class="modalTitle">A ENTROPIA AQUI É O SEU TEXTO</h3>
+      <p class="modalText">
+        Você escolheu gerar a seed <b>a partir de um texto</b>. Isso significa que a
+        <b>força real da entropia não vem da "128/256 bits" selecionada — vem inteiramente do
+        que você digitar.</b>
+      </p>
+      <p class="modalText">
+        Um texto curto, comum ou adivinhável (frase de música, data, nome, senha reciclada etc.)
+        pode ser quebrado por dicionário/força bruta em segundos, mesmo virando um mnemonic de
+        24 palavras "aparentemente" forte. <b>Você é responsável por garantir que o texto usado
+        tenha entropia real e suficiente.</b>
+      </p>
+      <p class="modalText">Se tiver dúvida, use o modo <b>Aleatório (CSPRNG)</b> em vez deste.</p>
+
+      <label class="modalCheck">
+        <input type="checkbox" id="textModeAck" />
+        Entendi o risco e confirmo que meu texto tem entropia adequada.
+      </label>
+
+      <div class="row">
+        <button class="btn" id="btnTextModeCancel">Cancelar / usar Aleatório</button>
+        <button class="btn danger" id="btnTextModeContinue" disabled>Continuar mesmo assim</button>
+      </div>
+    </div>
+  </div>
 
   <script src="./entropia-info.js"></script>
   <script type="module" src="./app.js"></script>

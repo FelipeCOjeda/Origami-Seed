@@ -135,7 +135,39 @@ function showTextBoxIfNeeded() {
   $("textBox").style.display = mode === "text" ? "block" : "none";
 }
 
-$("mode").addEventListener("change", showTextBoxIfNeeded);
+// Popup de risco do modo "texto": a entropia real depende do que o usuário digitar,
+// não da "força" (128/256 bits) selecionada. Precisa de confirmação explícita antes de gerar.
+function confirmTextModeRisk() {
+  return new Promise((resolve) => {
+    const overlay = $("textModeModal");
+    const checkbox = $("textModeAck");
+    const btnContinue = $("btnTextModeContinue");
+    const btnCancel = $("btnTextModeCancel");
+
+    checkbox.checked = false;
+    btnContinue.disabled = true;
+    overlay.style.display = "flex";
+
+    const onCheck = () => { btnContinue.disabled = !checkbox.checked; };
+    const cleanup = () => {
+      overlay.style.display = "none";
+      checkbox.removeEventListener("change", onCheck);
+      btnContinue.removeEventListener("click", onContinue);
+      btnCancel.removeEventListener("click", onCancel);
+    };
+    const onContinue = () => { cleanup(); resolve(true); };
+    const onCancel = () => { cleanup(); resolve(false); };
+
+    checkbox.addEventListener("change", onCheck);
+    btnContinue.addEventListener("click", onContinue);
+    btnCancel.addEventListener("click", onCancel);
+  });
+}
+
+$("mode").addEventListener("change", () => {
+  showTextBoxIfNeeded();
+  if ($("mode").value === "text") confirmTextModeRisk();
+});
 
 // ──────────────────────────────────────
 //  FONT SIZE
@@ -206,6 +238,10 @@ $("btnGenerate").addEventListener("click", async () => {
     } else {
       const t = ($("seedText").value || "").trim();
       if (!t) return setStatus("Escreve um texto aí, chefia.", false);
+
+      const ack = await confirmTextModeRisk();
+      if (!ack) return setStatus("Geração cancelada — troque para o modo Aleatório (CSPRNG).", false);
+
       const h = await sha256Bytes(t);
       entropy = h.slice(0, strength / 8);
     }

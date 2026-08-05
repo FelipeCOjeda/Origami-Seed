@@ -374,6 +374,48 @@ pre.mono {
 pre.mono::-webkit-scrollbar { width: 4px; }
 pre.mono::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+/* ══ TEXT-MODE WARNING ══ */
+.warningBox {
+  border: 1px solid var(--danger);
+  background: var(--danger-dim);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ══ TEXT-MODE MODAL ══ */
+.modalOverlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(3px);
+}
+.modalBox {
+  max-width: 520px; width: 100%;
+  background: var(--card);
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: 0 0 0 4px var(--danger-dim), var(--shadow);
+  animation: modalPulse 1.6s ease-in-out infinite;
+}
+@keyframes modalPulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--danger-dim), var(--shadow); }
+  50% { box-shadow: 0 0 0 8px rgba(255,92,94,.28), var(--shadow); }
+}
+.modalIcon { font-size: 34px; text-align: center; margin-bottom: 6px; }
+.modalTitle { margin: 0 0 12px; text-align: center; color: var(--danger); font-family: var(--sans); letter-spacing: .3px; }
+.modalText { font-size: 13px; line-height: 1.55; color: var(--text); margin: 0 0 10px; }
+.modalCheck {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px; color: var(--text);
+  margin: 12px 0 4px; cursor: pointer;
+}
+.modalCheck input { margin-top: 3px; }
+
 /* ══ FOOTER ══ */
 .footer {
   color: var(--muted); font-size: 11px; font-family: var(--mono);
