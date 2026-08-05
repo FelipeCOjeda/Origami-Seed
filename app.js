@@ -2,7 +2,7 @@
 // Libs via CDN ESM
 import * as bip39 from "https://cdn.jsdelivr.net/npm/bip39@3.1.0/+esm";
 import * as bitcoin from "https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.7/+esm";
-import * as ecc from "https://cdn.jsdelivr.net/npm/tiny-secp256k1@2.2.3/+esm";
+import * as ecc from "https://cdn.jsdelivr.net/npm/tiny-secp256k1@1.1.7/+esm";
 import * as bip32mod from "https://cdn.jsdelivr.net/npm/bip32@4.0.0/+esm";
 import bs58check from "https://cdn.jsdelivr.net/npm/bs58check@3.0.1/+esm";
 import { Buffer } from "https://cdn.jsdelivr.net/npm/buffer@6.0.3/+esm";
