@@ -9,3 +9,16 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+
+# lixo pesado que não pertence ao código-fonte do app (venv, builds, ZIPs de release)
+/Github/
+*.zip
+*.rar
+/OrigamiSeed.exe/
+/Site/
+/origami_frontend/
+/origami_seed_*_package*/
+/Origami Seed - Linux V3/
+/Origami Seed -Windows V3/
+*.venv/
+.venv/
